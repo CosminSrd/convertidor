@@ -8,7 +8,7 @@ const port = 3000;
 
 app.use(express.static('public'));
 
-app.get('/download', async (req, res) => {
+app.get('/download', (req, res) => {
     const url = req.query.url;
     const format = req.query.format;
 
@@ -16,38 +16,21 @@ app.get('/download', async (req, res) => {
         return res.status(400).send('Falta URL o formato.');
     }
 
-    try {
-        const info = await ytdl.getInfo(url);
-        let audioFormat;
-        let videoFormat;
+    const video = ytdl(url, { filter: 'audioandvideo' });
 
-        if (format === 'mp3') {
-            audioFormat = ytdl.chooseFormat(info.formats, { quality: 'highestaudio' });
-            const audioBitrate = audioFormat.audioBitrate || 128; // Default to 128 if not available
+    res.header('Content-Disposition', `attachment; filename="video.${format}"`);
 
-            const video = ytdl(url, { format: audioFormat });
-
-            res.header('Content-Disposition', `attachment; filename="audio.mp3"`);
-
-            ffmpeg(video)
-                .audioBitrate(audioBitrate)
-                .toFormat('mp3')
-                .pipe(res, { end: true });
-        } else if (format === 'mp4') {
-            videoFormat = ytdl.chooseFormat(info.formats, { quality: '137' }); // 1080p is format 137
-            if (!videoFormat) {
-                videoFormat = ytdl.chooseFormat(info.formats, { quality: 'highestvideo' });
-            }
-
-            res.header('Content-Disposition', `attachment; filename="video.mp4"`);
-
-            ytdl(url, { format: videoFormat }).pipe(res);
-        } else {
-            res.status(400).send('Formato no soportado.');
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Error al procesar la solicitud.');
+    if (format === 'mp3') {
+        ffmpeg(video)
+            .audioBitrate(128)
+            .saveToFile(path.join(__dirname, 'video.mp3'))
+            .on('end', () => {
+                res.download(path.join(__dirname, 'video.mp3'), 'video.mp3');
+            });
+    } else if (format === 'mp4') {
+        video.pipe(res);
+    } else {
+        res.status(400).send('Formato no soportado.');
     }
 });
 
