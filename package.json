@@ -1,17 +1,13 @@
 {
-  "name": "youtube-converter3",
+  "name": "youtube-converter",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "express": "^4.19.2",
-    "fluent-ffmpeg": "^2.1.2",
-    "ytdl-core": "^4.11.5"
+    "express": "^4.17.1",
+    "ytdl-core": "^4.2.0",
+    "fluent-ffmpeg": "^2.1.2"
   }
 }
